@@ -36,18 +36,1109 @@
         backface-visibility: hidden;
     }
 
-    h1 {
-        color: red;
-        font-size: 100px;
+    body.dragging {
+        cursor: grabbing;
+    }
+
+    body.lightbox-open {
+        overflow: hidden;
+    }
+
+    #gallery::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 10;
+        background: radial-gradient(
+            ellipse at center,
+            transparent 0%,
+            transparent 50%,
+            transparent 65%,
+            rgba(12, 12, 12, 0.15) 75%,
+            rgba(12, 12, 12, 0.25) 85%,
+            rgba(12, 12, 12, 0.4) 100%
+        );
+        -webkit-mask-image: radial-gradient(
+            ellipse at center,
+            transparent 0%,
+            transparent 55%,
+            black 100%
+        );
+        mask-image: radial-gradient(
+            ellipse at center,
+            transparent 0%,
+            transparent 55%,
+            black 100%
+        );
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    #gallery {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out, filter 0.3s ease;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+
+    #gallery.loaded {
+        opacity: 1;
+    }
+
+    #gallery.blur {
+        filter: blur(5px);
+        pointer-events: none;
+    }
+
+    .loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1000;
+        transition: opacity 0.5s ease-out;
+    }
+
+    .loading-container.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .loading-text {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 20px;
+        letter-spacing: 0.05em;
+    }
+
+    .loading-bar-container {
+        width: 200px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1px;
+        overflow: hidden;
+    }
+
+    .loading-bar {
+        height: 100%;
+        background: #666;
+        width: 0;
+        transition: width 0.3s ease;
+        border-radius: 1px;
+    }
+
+    .lightbox-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(12, 12, 12, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+    }
+
+    .lightbox-overlay.open { 
+        display: flex; 
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        z-index: 2001;
+    }
+
+    .lightbox-main {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: calc(100vh - 120px);
+        padding-top: 50px;
+        max-height: 80vh;
+    }
+
+    .lightbox-img {
+        max-width: 90vw;
+        max-height: calc(80vh - 100px);
+        width: auto;
+        height: auto;
+        border-radius: 0;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        object-fit: contain;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .lightbox-img.loaded {
+        opacity: 1;
+    }
+
+    .lightbox-close {
+        position: fixed;
+        top: 110px;
+        right: 50px;
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 32px;
+        font-weight: 300;
+        transition: all 0.3s ease;
+        z-index: 2002;
+        padding: 10px;
+        line-height: 1;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox-close:hover {
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    .lightbox-thumbnails {
+        display: flex;
+        gap: 10px;
+        max-width: 600px;
+        padding: 10px 0;
+        justify-content: center;
+        flex-wrap: nowrap;
+        position: relative;
+        z-index: 2001;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .lightbox-thumbnails::-webkit-scrollbar { 
+        display: none;
+    }
+
+    .lightbox-thumbnail {
+        flex-shrink: 0;
+        width: 100px;
+        height: 75px;
+        border-radius: 0;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease-in-out;
+        opacity: 0.4;
+        position: relative;
+    }
+
+    .lightbox-thumbnail:hover {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+
+    .lightbox-thumbnail.active {
+        opacity: 1;
+        border-color: #666;
+    }
+
+    .lightbox-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+    }
+
+    @media (max-width: 800px) {
+        .lightbox-content {
+            flex-direction: column;
+            max-width: 100vw;
+            max-height: 100vh;
+            padding: 10px;
+        }
+
+        .lightbox-main {
+            height: calc(100vh - 180px);
+            padding-top: 100px;
+            max-height: 70vh;
+        }
+
+        .lightbox-img {
+            max-width: 95vw;
+            max-height: calc(70vh - 100px);
+            width: auto;
+            height: auto;
+        }
+
+        .lightbox-close {
+            top: 85px;
+            right: 15px;
+            font-size: 28px;
+        }
+
+        .lightbox-thumbnails {
+            max-width: 100%;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .lightbox-thumbnail {
+            width: 70px;
+            height: 52px;
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .lightbox-overlay.open .lightbox-content {
+        animation: fadeIn 0.3s ease-out;
     }
 </style>
 </head>
 <body>
-<div>
-    <h1>Red Heading</h1>
+<div class="loading-container" id="loading">
+    <div class="loading-text">LOADING GALLERY</div>
+    <div class="loading-bar-container">
+        <div class="loading-bar" id="loadingBar"></div>
+    </div>
 </div>
 
+<section id="gallery">
+</section>
 
+<div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+    <div class="lightbox-content">
+        <div class="lightbox-main">
+            <img id="lightbox-img" class="lightbox-img" alt="Gallery image" />
+        </div>
+        <div class="lightbox-thumbnails" id="lightbox-thumbnails"></div>
+    </div>
+</div>
 
+<script src="https://unpkg.com/three@0.157.0/build/three.min.js"></script>
+
+<script>
+    if (typeof THREE === 'undefined') {
+        document.getElementById('loading').innerHTML = '<div class="loading-text">FAILED TO LOAD RESOURCES</div>';
+        throw new Error('Three.js library failed to load');
+    }
+
+    const projects = [
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_ac1c29d3bc5641cc9809ce8c8b8be798~mv2.jpg",
+            images: [
+              "https://static.wixstatic.com/media/a5775f_dcce76b23d6f410fa85e01eccfed4de6~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_0a1bce4e77b648a99bb3e3a8a6ed27a0~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_f45cc440cef44fd3a880f81b786424b0~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_f3a19a2593354a339b1ee891bf2d31d8~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_5cd33a9cd7134dc19fc95415e25caf83~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_5434a40c460e40e7b005874fc28d5cab~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_b33dce4a01404840ad9138e23fdb4781~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_0f9813c332394fbfa74a155894fe00c6~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_95356ff9ad8f466f99184c42c6b077a3~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_b34cbfd83cef46ca84231653993d4e26~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_ebdcd60b85ea4d50b74605a61d9a6499~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_dcf6f85aef7c4d10a0758acbb9c84eec~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_e21cf7d811ee4be39c8bc9e5154c0396~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_c4356cf501714cefaa3fc19689c36926~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_27f1ac001d754d91ba0c0cf30b576ca3~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_424f2984bff348ab9bfa09616bd2aa5f~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_5f80c0bec4a7497c849853ae4692d4a1~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_ac9b022a1a4042a5ae57aaeef6d95866~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_79e487d397684fa2a4a59be463c9bf0a~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_3fae3d343f264737ba3a9f645d0a6c3e~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_05f5ef3af8b94cd4bee6940010b1a9e4~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_aa20b5fe97bd43808a3060054a0e264a~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_9f86f6cb652e4cbd961287d9fdd4a4eb~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_ae3990f3d71e44129f62713eafd6d8b3~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_f64a2d48e30d4ceca4ca698703200061~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_b0af69308499409ba3f6a5b42f6e3bb8~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_e91f66177ea54a37a1059b9ff4a38390~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_242352b715b342368983655dced88c1d~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_088731c9fa674e93a8f4cbd89335dad2~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_8944f1419aed4433ba99a8226ba38eb3~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_9e90853643f1425aaa05b50f7500db6e~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_3346ddff0ab641989e848e0ff479ab56~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_1255e43684be4dac9ce04fed8017fe67~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_fb7784cf05df4278b281219e5bf9251a~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_4bf8a5954ab0430b94ffee73a69dce25~mv2.jpg",
+            images: [
+              "https://static.wixstatic.com/media/a5775f_d512a32bc0284daab56199552f3550ad~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_a2dd10646f724a12ab9e7d29e53ca0fc~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_b04a173e3434446d90f5e821c3775979~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_da2b6b6f3ff9487bb8a108e2154c889a~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_cf411233725e4f42a47000d096a888da~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_96fa1a11e57a4e8190b68567b5903cb5~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_55c0a1808bfc42ab911abaf0f388df49~mv2.jpg",
+              "https://static.wixstatic.com/media/a5775f_3730e2b72b72470f80d0cbe57271ea72~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_2d727f5f61e841759be24011f5bf40c1~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_c83748bc815348edaaf42a8b72ba473f~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_6caa51c5551f4eb4b49b85c247d26b3a~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_6698ab3337a8468e9194ecde6e003b0e~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_7999d7edd6d74c96a5836afa003e2df4~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_1a0be68c235545b8b1685ccff16d901c~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_91d49aec3abf4e4f9408ac1a0d7648e8~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_c6201d8f5e2b45c784ea345a07b4face~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_1d5a59c0858c4ee4bf9c00b672cd1882~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_65593ea0bfda4f40bded15a7735ca768~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_9ed1ef074045413bb82a34bc2916cd2b~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_a9671724b32842dca6b529c37da9fad0~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_a4eb22f1f76840d6aded22e8dbead476~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_f64a2d48e30d4ceca4ca698703200061~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_b0af69308499409ba3f6a5b42f6e3bb8~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_e91f66177ea54a37a1059b9ff4a38390~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_242352b715b342368983655dced88c1d~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_088731c9fa674e93a8f4cbd89335dad2~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_8944f1419aed4433ba99a8226ba38eb3~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_9e90853643f1425aaa05b50f7500db6e~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_3346ddff0ab641989e848e0ff479ab56~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_1255e43684be4dac9ce04fed8017fe67~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_fb7784cf05df4278b281219e5bf9251a~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_ac1c29d3bc5641cc9809ce8c8b8be798~mv2.jpg",
+            images: [
+              "https://static.wixstatic.com/media/a5775f_dcce76b23d6f410fa85e01eccfed4de6~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_0a1bce4e77b648a99bb3e3a8a6ed27a0~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_f45cc440cef44fd3a880f81b786424b0~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_f3a19a2593354a339b1ee891bf2d31d8~mv2.jpg"
+            ]
+        },
+        { 
+            mainImage: "https://static.wixstatic.com/media/a5775f_5cd33a9cd7134dc19fc95415e25caf83~mv2.jpg",
+            images: [
+                "https://static.wixstatic.com/media/a5775f_5434a40c460e40e7b005874fc28d5cab~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_b33dce4a01404840ad9138e23fdb4781~mv2.jpg",
+                "https://static.wixstatic.com/media/a5775f_0f9813c332394fbfa74a155894fe00c6~mv2.jpg"
+            ]
+        }
+    ];
+    
+    const vertexShader = `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+
+    const fragmentShader = `
+        uniform vec2 uOffset;
+        uniform vec2 uResolution;
+        uniform vec4 uBorderColor;
+        uniform vec4 uBackgroundColor;
+        uniform vec2 uMousePos;
+        uniform float uZoom;
+        uniform float uCellSize;
+        uniform float uTextureCount;
+        uniform sampler2D uImageAtlas;
+        uniform float uHoverAnimations[256];
+        uniform float uTime;
+        uniform float uColumnsPerRow;
+        uniform float uSphereStrength;
+        varying vec2 vUv;
+        
+        float easeInOutCubic(float t) {
+            return t < 0.5 ? 4.0 * t * t * t : 1.0 - pow(-2.0 * t + 2.0, 3.0) / 2.0;
+        }
+        
+        float properMod(float x, float y) {
+            return mod(mod(x, y) + y, y);
+        }
+        
+        void main() {
+            vec2 screenUV = (vUv - 0.5) * 2.0;
+            
+            float radius = length(screenUV);
+            float horizontalDist = abs(screenUV.x);
+            float verticalDist = abs(screenUV.y);
+            
+            float sphereStrength = uSphereStrength;
+            float horizontalFold = 1.0 - sphereStrength * verticalDist * verticalDist;
+            float verticalFold = 1.0 - sphereStrength * horizontalDist * horizontalDist;
+            
+            vec2 distortedUV = screenUV;
+            distortedUV.x *= verticalFold;
+            distortedUV.y *= horizontalFold;
+            
+            float sphericalCurve = 1.0 + 0.15 * (1.0 - radius * 0.5);
+            distortedUV *= sphericalCurve;
+            
+            vec2 aspectRatio = vec2(uResolution.x / uResolution.y, 1.0);
+            vec2 worldCoord = distortedUV * aspectRatio * uZoom + uOffset;
+            vec2 cellPos = worldCoord / uCellSize;
+            vec2 cellId = floor(cellPos);
+            vec2 cellUV = fract(cellPos);
+            
+            vec4 finalColor = uBackgroundColor;
+            
+            float imageSize = 0.85;
+            float imageBorder = (1.0 - imageSize) * 0.5;
+            vec2 imageUV = (cellUV - imageBorder) / imageSize;
+            bool inImageArea = imageUV.x >= 0.0 && imageUV.x <= 1.0 && imageUV.y >= 0.0 && imageUV.y <= 1.0;
+            
+            float texIndex = properMod(cellId.x + cellId.y * uColumnsPerRow, uTextureCount);
+            
+            vec2 mouseScreenUV = (uMousePos / uResolution) * 2.0 - 1.0;
+            mouseScreenUV.y = -mouseScreenUV.y;
+            
+            float mouseRadius = length(mouseScreenUV);
+            float mouseHorizontalDist = abs(mouseScreenUV.x);
+            float mouseVerticalDist = abs(mouseScreenUV.y);
+            
+            vec2 mouseDistortedUV = mouseScreenUV;
+            mouseDistortedUV.x *= (1.0 - sphereStrength * mouseVerticalDist * mouseVerticalDist);
+            mouseDistortedUV.y *= (1.0 - sphereStrength * mouseHorizontalDist * mouseHorizontalDist);
+            mouseDistortedUV *= (1.0 + 0.15 * (1.0 - mouseRadius * 0.5));
+            
+            vec2 mouseWorldCoord = mouseDistortedUV * aspectRatio * uZoom + uOffset;
+            vec2 mouseCellPos = mouseWorldCoord / uCellSize;
+            vec2 mouseCellId = floor(mouseCellPos);
+            
+            bool isHovered = (cellId == mouseCellId) && uMousePos.x >= 0.0;
+            
+            int cellIndexX = int(cellId.x) + 8;
+            int cellIndexY = int(cellId.y) + 8;
+            int cellIndex = (cellIndexX + cellIndexY * 16) % 256;
+            float hoverAnimation = uHoverAnimations[cellIndex];
+            
+            float easedAnimation = easeInOutCubic(hoverAnimation);
+            
+            float atlasGridSize = ceil(sqrt(uTextureCount));
+            vec2 atlasGridPos = vec2(mod(texIndex, atlasGridSize), floor(texIndex / atlasGridSize));
+
+            if (inImageArea) {
+                float edgeSmooth = 0.01;
+                
+                vec2 zoomedUV = imageUV;
+                vec2 center = vec2(0.5, 0.5);
+                float scaleAmount = 1.0 - 0.15 * easedAnimation;
+                zoomedUV = (imageUV - center) * scaleAmount + center;
+                
+                vec2 imageMaskVec = smoothstep(-edgeSmooth, edgeSmooth, zoomedUV) * smoothstep(-edgeSmooth, edgeSmooth, 1.0 - zoomedUV);
+                float imageAlpha = imageMaskVec.x * imageMaskVec.y;
+
+                if (imageAlpha > 0.0) {
+                    vec2 atlasUV = (atlasGridPos + zoomedUV) / atlasGridSize;
+                    atlasUV.y = 1.0 - atlasUV.y;
+                    vec4 imageTexColor = texture2D(uImageAtlas, atlasUV);
+                    finalColor = mix(finalColor, imageTexColor, imageAlpha);
+                }
+            }
+            
+            float lineWidth = 0.003;
+            float gridX = smoothstep(0.0, lineWidth, cellUV.x) - smoothstep(1.0 - lineWidth, 1.0, cellUV.x);
+            float gridY = smoothstep(0.0, lineWidth, cellUV.y) - smoothstep(1.0 - lineWidth, 1.0, cellUV.y);
+            float gridAmount = max(gridX, gridY);
+            finalColor = mix(finalColor, uBorderColor, gridAmount * uBorderColor.a * 0.3);
+
+            gl_FragColor = finalColor;
+        }
+    `;
+
+    const config = {
+        cellSize: 0.75,
+        mobileCellSize: 0.7,
+        zoomLevel: 1.25,
+        mobileZoomLevel: 2.0,
+        lerpFactor: 0.12,
+        mobileLerpFactor: 0.15,
+        borderColor: "rgba(255, 255, 255, 0.05)",
+        backgroundColor: "rgba(12, 12, 12, 0)",
+        columnsPerRow: 4,  
+        mobileColumnsPerRow: 2,
+        sphereStrength: 0.08, 
+        mobileSphereStrength: 0.08
+    };
+
+    let scene, camera, renderer, plane;
+    let isDragging = false, isClick = true, clickStartTime = 0;
+    let previousMouse = { x: 0, y: 0 };
+    let offset = { x: 0, y: 0 }, targetOffset = { x: 0, y: 0 };
+    let mousePosition = { x: -1, y: -1 };
+    let zoomLevel = 1.0, targetZoom = 1.0;
+    let currentProjectIndex = 0, currentImageIndex = 0, lightboxOpen = false;
+    let loadProgress = 0;
+    let hoverAnimations = new Float32Array(256).fill(0);
+    let lastTouchDistance = 0;
+    let touchMoveCount = 0;
+    let rafId = null;
+
+    const isMobile = () => window.innerWidth <= 800;
+
+    const updateLoadingBar = (progress) => {
+        const bar = document.getElementById('loadingBar');
+        if (bar) {
+            bar.style.width = `${progress}%`;
+        }
+    };
+
+    const rgbaToArray = (rgba) => {
+        const match = rgba.match(/rgba?\(([^)]+)\)/);
+        if (!match) return [1, 1, 1, 1];
+        return match[1].split(",").map((v, i) => i < 3 ? parseFloat(v.trim()) / 255 : parseFloat(v.trim() || 1));
+    };
+
+    const createTextureAtlas = (textures) => {
+        const atlasSize = Math.ceil(Math.sqrt(textures.length));
+        const textureSize = 512;
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = atlasSize * textureSize;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#0c0c0c";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        textures.forEach((texture, index) => {
+            const x = (index % atlasSize) * textureSize;
+            const y = Math.floor(index / atlasSize) * textureSize;
+            if (texture.image?.complete) {
+                ctx.drawImage(texture.image, x, y, textureSize, textureSize);
+            }
+        });
+        
+        const atlasTexture = new THREE.CanvasTexture(canvas);
+        Object.assign(atlasTexture, { 
+            wrapS: THREE.ClampToEdgeWrapping, 
+            wrapT: THREE.ClampToEdgeWrapping, 
+            minFilter: THREE.LinearFilter, 
+            magFilter: THREE.LinearFilter, 
+            flipY: false 
+        });
+        return atlasTexture;
+    };
+
+    const loadTextures = () => {
+        const textureLoader = new THREE.TextureLoader();
+        const imageTextures = [];
+        let loadedCount = 0;
+        return new Promise((resolve) => {
+            projects.forEach((project) => {
+                const texture = textureLoader.load(project.mainImage, () => {
+                    loadedCount++;
+                    loadProgress = (loadedCount / projects.length) * 100;
+                    updateLoadingBar(loadProgress);
+                    if (loadedCount === projects.length) {
+                        setTimeout(() => resolve(imageTextures), 200);
+                    }
+                });
+                Object.assign(texture, { 
+                    wrapS: THREE.ClampToEdgeWrapping, 
+                    wrapT: THREE.ClampToEdgeWrapping, 
+                    minFilter: THREE.LinearFilter, 
+                    magFilter: THREE.LinearFilter 
+                });
+                imageTextures.push(texture);
+            });
+        });
+    };
+
+    const updateMousePosition = (event) => {
+        if (lightboxOpen) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mousePosition.x = event.clientX - rect.left;
+        mousePosition.y = event.clientY - rect.top;
+        plane?.material.uniforms.uMousePos.value.set(mousePosition.x, mousePosition.y);
+    };
+
+    const openLightbox = (projectIndex, imageIndex = 0) => {
+        if (projectIndex < 0 || projectIndex >= projects.length) {
+            console.error('Invalid project index:', projectIndex);
+            return;
+        }
+        
+        currentProjectIndex = projectIndex;
+        currentImageIndex = imageIndex;
+        lightboxOpen = true;
+        
+        document.getElementById('gallery').classList.add('blur');
+        document.body.classList.add('lightbox-open');
+        
+        mousePosition.x = -1;
+        mousePosition.y = -1;
+        if (plane?.material.uniforms.uMousePos) {
+            plane.material.uniforms.uMousePos.value.set(-1, -1);
+        }
+        
+        updateLightboxContent();
+        document.getElementById('lightbox').classList.add('open');
+    };
+
+    const closeLightbox = () => {
+        lightboxOpen = false;
+        document.getElementById('lightbox').classList.remove('open');
+        document.getElementById('gallery').classList.remove('blur');
+        document.body.classList.remove('lightbox-open');
+    };
+
+    const updateLightboxContent = () => {
+        const project = projects[currentProjectIndex];
+        if (!project) {
+            console.error('Project not found:', currentProjectIndex);
+            return;
+        }
+        
+        if (currentImageIndex < 0 || currentImageIndex >= project.images.length) {
+            currentImageIndex = 0;
+        }
+        
+        const img = document.getElementById('lightbox-img');
+        img.classList.remove('loaded');
+        
+        const newImg = new Image();
+        newImg.onload = () => {
+            img.src = newImg.src;
+            setTimeout(() => img.classList.add('loaded'), 50);
+        };
+        newImg.src = project.images[currentImageIndex];
+        
+        updateThumbnails();
+    };
+
+    const updateThumbnails = () => {
+        const thumbnailsContainer = document.getElementById('lightbox-thumbnails');
+        thumbnailsContainer.innerHTML = '';
+        const project = projects[currentProjectIndex];
+        if (!project) return;
+        
+        project.images.forEach((image, index) => {
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'lightbox-thumbnail';
+            if (index === currentImageIndex) thumbnail.classList.add('active');
+            thumbnail.innerHTML = `<img src="${image}" alt="image ${index + 1}">`;
+            thumbnail.addEventListener('click', (e) => { 
+                e.stopPropagation();
+                e.preventDefault();
+                currentImageIndex = index; 
+                updateLightboxContent(); 
+            });
+            thumbnailsContainer.appendChild(thumbnail);
+        });
+    };
+
+    const navigateImage = (direction) => {
+        const project = projects[currentProjectIndex];
+        if (!project) return;
+        
+        currentImageIndex += direction;
+        
+        if (currentImageIndex >= project.images.length) {
+            currentImageIndex = 0;
+        } else if (currentImageIndex < 0) {
+            currentImageIndex = project.images.length - 1;
+        }
+        
+        updateLightboxContent();
+    };
+
+    const initLightbox = () => {
+        const overlay = document.getElementById('lightbox');
+        const closeBtn = document.getElementById('lightbox-close');
+        
+        closeBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            e.preventDefault();
+            closeLightbox(); 
+            return false;
+        };
+        
+        overlay.addEventListener('click', (e) => { 
+            if (e.target === overlay) {
+                closeLightbox();
+            }
+        });
+        
+        overlay.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('keydown', (e) => { 
+            if (lightboxOpen) {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigateImage(1);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigateImage(-1);
+                }
+            }
+        });
+    };
+
+    const startDrag = (x, y) => {
+        if (lightboxOpen) return;
+        isDragging = true; 
+        isClick = true; 
+        clickStartTime = Date.now();
+        touchMoveCount = 0;
+        document.body.classList.add("dragging");
+        previousMouse.x = x; 
+        previousMouse.y = y;
+        
+        const targetZoomLevel = isMobile() ? config.mobileZoomLevel : config.zoomLevel;
+        setTimeout(() => isDragging && (targetZoom = targetZoomLevel), 100);
+    };
+
+    const onPointerDown = (e) => {
+        if (!lightboxOpen) {
+            e.preventDefault();
+            startDrag(e.clientX, e.clientY);
+        }
+    };
+    
+    const onTouchStart = (e) => { 
+        if (!lightboxOpen) {
+            e.preventDefault(); 
+            if (e.touches.length === 1) {
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+            }
+        }
+    };
+
+    const handleMove = (currentX, currentY) => {
+        if (lightboxOpen || !isDragging || currentX === undefined || currentY === undefined) return;
+        
+        touchMoveCount++;
+        const deltaX = currentX - previousMouse.x;
+        const deltaY = currentY - previousMouse.y;
+        
+        if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1 || touchMoveCount > 2) {
+            isClick = false;
+            const targetZoomLevel = isMobile() ? config.mobileZoomLevel : config.zoomLevel;
+            if (targetZoom === 1.0) targetZoom = targetZoomLevel;
+        }
+        
+        const sensitivity = isMobile() ? 0.004 : 0.003;
+        targetOffset.x -= deltaX * sensitivity;
+        targetOffset.y += deltaY * sensitivity;
+        
+        previousMouse.x = currentX; 
+        previousMouse.y = currentY;
+    };
+
+    const onPointerMove = (e) => {
+        if (!lightboxOpen) {
+            e.preventDefault();
+            handleMove(e.clientX, e.clientY);
+        }
+    };
+    
+    const onTouchMove = (e) => { 
+        if (!lightboxOpen) {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2 && lastTouchDistance > 0) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const scale = distance / lastTouchDistance;
+                targetZoom = Math.max(0.5, Math.min(3.0, targetZoom * scale));
+                lastTouchDistance = distance;
+            }
+        }
+    };
+
+    const onPointerUp = (event) => {
+        if (lightboxOpen) return;
+        
+        isDragging = false;
+        document.body.classList.remove("dragging");
+        targetZoom = 1.0;
+        lastTouchDistance = 0;
+        
+        if (isClick && Date.now() - clickStartTime < 300 && touchMoveCount <= 2) {
+            const endX = event.clientX || (event.changedTouches && event.changedTouches[0] && event.changedTouches[0].clientX);
+            const endY = event.clientY || (event.changedTouches && event.changedTouches[0] && event.changedTouches[0].clientY);
+            
+            if (endX !== undefined && endY !== undefined) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const screenX = ((endX - rect.left) / rect.width) * 2 - 1;
+                const screenY = -(((endY - rect.top) / rect.height) * 2 - 1);
+                
+                const radius = length(screenX, screenY);
+                const distortion = 1.0 - 0.08 * radius * radius;
+                
+                const cellSize = isMobile() ? config.mobileCellSize : config.cellSize;
+                const columnsPerRow = isMobile() ? config.mobileColumnsPerRow : config.columnsPerRow;
+                
+                let worldX = screenX * distortion * (rect.width / rect.height) * zoomLevel + offset.x;
+                let worldY = screenY * distortion * zoomLevel + offset.y;
+                
+                const cellX = Math.floor(worldX / cellSize);
+                const cellY = Math.floor(worldY / cellSize);
+                
+                const texIndex = Math.floor((cellX + cellY * columnsPerRow) % projects.length);
+                const realOrder = [12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3];
+                let actualIndex = texIndex < 0 ? projects.length + texIndex : texIndex;
+                actualIndex = realOrder[actualIndex];
+                
+                if (actualIndex >= 0 && actualIndex < projects.length) {
+                    openLightbox(actualIndex, 0);
+                }
+            }
+        }
+        touchMoveCount = 0;
+    };
+
+    const length = (x, y) => Math.sqrt(x * x + y * y);
+
+    const onWindowResize = () => {
+        const container = document.getElementById("gallery");
+        if (!container) return;
+        const { offsetWidth: width, offsetHeight: height } = container;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        plane?.material.uniforms.uResolution.value.set(width, height);
+        
+        const cellSize = isMobile() ? config.mobileCellSize : config.cellSize;
+        const columnsPerRow = isMobile() ? config.mobileColumnsPerRow : config.columnsPerRow;
+        const sphereStrength = isMobile() ? config.mobileSphereStrength : config.sphereStrength;
+        
+        if (plane?.material.uniforms) {
+            plane.material.uniforms.uCellSize.value = cellSize;
+            plane.material.uniforms.uColumnsPerRow.value = columnsPerRow;
+            plane.material.uniforms.uSphereStrength.value = sphereStrength;
+        }
+    };
+
+    const setupEventListeners = () => {
+        document.addEventListener("mousedown", onPointerDown, { passive: false });
+        document.addEventListener("mousemove", onPointerMove, { passive: false });
+        document.addEventListener("mouseup", onPointerUp, { passive: false });
+        document.addEventListener("mouseleave", onPointerUp, { passive: false });
+        
+        document.addEventListener("touchstart", onTouchStart, { passive: false });
+        document.addEventListener("touchmove", onTouchMove, { passive: false });
+        document.addEventListener("touchend", onPointerUp, { passive: false });
+        document.addEventListener("touchcancel", onPointerUp, { passive: false });
+        
+        window.addEventListener("resize", onWindowResize, { passive: true });
+        
+        document.addEventListener("contextmenu", (e) => {
+            if (!lightboxOpen) e.preventDefault();
+        }, { passive: false });
+        
+        if (!isMobile()) {
+            renderer.domElement.addEventListener("mousemove", updateMousePosition, { passive: true });
+            renderer.domElement.addEventListener("mouseleave", () => {
+                if (!lightboxOpen) {
+                    mousePosition.x = mousePosition.y = -1;
+                    plane?.material.uniforms.uMousePos.value.set(-1, -1);
+                }
+            }, { passive: true });
+        }
+    };
+
+    const animate = () => {
+        rafId = requestAnimationFrame(animate);
+        
+        const lerpFactor = isMobile() ? config.mobileLerpFactor : config.lerpFactor;
+        offset.x += (targetOffset.x - offset.x) * lerpFactor;
+        offset.y += (targetOffset.y - offset.y) * lerpFactor;
+        zoomLevel += (targetZoom - zoomLevel) * lerpFactor;
+        
+        if (plane?.material.uniforms && !lightboxOpen) {
+            let currentHoveredCell = -1;
+            
+            if (mousePosition.x >= 0 && mousePosition.y >= 0 && !isMobile()) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const screenX = (mousePosition.x / rect.width) * 2 - 1;
+                const screenY = -((mousePosition.y / rect.height) * 2 - 1);
+                
+                const sphereStrength = isMobile() ? config.mobileSphereStrength : config.sphereStrength;
+                const radius = Math.sqrt(screenX * screenX + screenY * screenY);
+                const horizontalDist = Math.abs(screenX);
+                const verticalDist = Math.abs(screenY);
+                
+                const verticalFold = 1.0 - sphereStrength * verticalDist * verticalDist;
+                const horizontalFold = 1.0 - sphereStrength * horizontalDist * horizontalDist;
+                const sphericalCurve = 1.0 + 0.15 * (1.0 - radius * 0.5);
+                
+                const cellSize = isMobile() ? config.mobileCellSize : config.cellSize;
+                let worldX = screenX * verticalFold * sphericalCurve * (rect.width / rect.height) * zoomLevel + offset.x;
+                let worldY = screenY * horizontalFold * sphericalCurve * zoomLevel + offset.y;
+                
+                const cellX = Math.floor(worldX / cellSize);
+                const cellY = Math.floor(worldY / cellSize);
+                
+                const cellIndexX = cellX + 8;
+                const cellIndexY = cellY + 8;
+                currentHoveredCell = (cellIndexX + cellIndexY * 16) % 256;
+            }
+            
+            for (let i = 0; i < 256; i++) {
+                const targetValue = (currentHoveredCell === i) ? 1.0 : 0.0;
+                const animationSpeed = 0.08;
+                
+                hoverAnimations[i] += (targetValue - hoverAnimations[i]) * animationSpeed;
+                
+                if (Math.abs(hoverAnimations[i] - targetValue) < 0.001) {
+                    hoverAnimations[i] = targetValue;
+                }
+            }
+            
+            plane.material.uniforms.uOffset.value.set(offset.x, offset.y);
+            plane.material.uniforms.uZoom.value = zoomLevel;
+            plane.material.uniforms.uHoverAnimations.value = hoverAnimations;
+            plane.material.uniforms.uTime.value = performance.now() * 0.001;
+        }
+        
+        renderer.render(scene, camera);
+    };
+
+    const init = async () => {
+        try {
+            initLightbox();
+            const container = document.getElementById("gallery");
+            if (!container) return;
+            
+            scene = new THREE.Scene();
+            camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+            camera.position.z = 1;
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true,
+                powerPreference: "high-performance",
+                stencil: false,
+                depth: false
+            });
+            renderer.setSize(container.offsetWidth, container.offsetHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x0c0c0c, 0);
+            container.appendChild(renderer.domElement);
+            
+            const imageTextures = await loadTextures();
+            const imageAtlas = createTextureAtlas(imageTextures);
+            
+            const cellSize = isMobile() ? config.mobileCellSize : config.cellSize;
+            const columnsPerRow = isMobile() ? config.mobileColumnsPerRow : config.columnsPerRow;
+            const sphereStrength = isMobile() ? config.mobileSphereStrength : config.sphereStrength;
+            
+            const uniforms = {
+                uOffset: { value: new THREE.Vector2(0, 0) },
+                uResolution: { value: new THREE.Vector2(container.offsetWidth, container.offsetHeight) },
+                uBorderColor: { value: new THREE.Vector4(...rgbaToArray(config.borderColor)) },
+                uBackgroundColor: { value: new THREE.Vector4(...rgbaToArray(config.backgroundColor)) },
+                uMousePos: { value: new THREE.Vector2(-1, -1) },
+                uZoom: { value: 1.0 },
+                uCellSize: { value: cellSize },
+                uTextureCount: { value: projects.length },
+                uImageAtlas: { value: imageAtlas },
+                uHoverAnimations: { value: new Float32Array(256).fill(0) },
+                uTime: { value: 0.0 },
+                uColumnsPerRow: { value: columnsPerRow },
+                uSphereStrength: { value: sphereStrength }
+            };
+            
+            const geometry = new THREE.PlaneGeometry(2, 2);
+            const material = new THREE.ShaderMaterial({ 
+                vertexShader, 
+                fragmentShader, 
+                uniforms, 
+                transparent: true 
+            });
+            plane = new THREE.Mesh(geometry, material);
+            scene.add(plane);
+            setupEventListeners();
+            
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('gallery').classList.add('loaded');
+            }, 300);
+            
+            animate();
+        } catch (error) {
+            console.error('Failed to initialize gallery:', error);
+            document.getElementById('loading').innerHTML = '<div class="loading-text">FAILED TO INITIALIZE</div>';
+        }
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+</script>
 </body>
 </html>
